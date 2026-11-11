@@ -55,3 +55,53 @@ class Comment(TimeStampMixin):
     
     def __str__(self):
         return f"{self.name}: {self.text[:30]}"
+    
+class Customer(TimeStampMixin):
+    # بهتر بود به user model موجود در django متصل می شدیم ولی برای سادگی این کار را نکردیم
+    first_name = models.CharField(max_length=255)
+    last_name = models.CharField(max_length=255)
+    email = models.EmailField(unique=True)
+    phone_number = models.CharField(max_length=20,blank=True)
+    birth_date = models.DateField(blank=True,null=True)
+    
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"
+    
+class Country(TimeStampMixin):
+    name = models.CharField(max_length=255)
+    
+    def __str__(self):
+        return f"{self.name}"
+    
+class Province(TimeStampMixin):
+    name = models.CharField(max_length=255)
+    country = models.ForeignKey(Country,on_delete=models.PROTECT,related_name='provinces')
+
+    def __str__(self):
+        return f"{self.name} ({self.country.name})"
+    
+class City(TimeStampMixin):
+    name = models.CharField(max_length=255)
+    province = models.ForeignKey(Province,on_delete=models.PROTECT,related_name='cities')
+
+    def __str__(self):
+        return f"{self.name} ({self.province.name})"
+    
+class Address(TimeStampMixin):
+    customer = models.ForeignKey(Customer,on_delete=models.CASCADE,related_name='addresses')
+    city = models.ForeignKey(City,on_delete=models.PROTECT,related_name='addresses')
+    street = models.CharField(max_length=255)
+    alley = models.CharField(max_length=255,blank=True)
+    building_number = models.SmallIntegerField(validators=[MinValueValidator(1)])
+    building_name= models.CharField(max_length=255,blank=True)
+    floor = models.SmallIntegerField(validators=[MinValueValidator(0)],blank=True,null=True)
+    unit = models.SmallIntegerField(validators=[MinValueValidator(1)],blank=True,null=True)
+    zip_code = models.CharField(max_length=10,blank=True,null=True,validators=[MinLengthValidator(10)])
+    # چون max_length=10 است و min_length=10 است پس طول کد پستی باید دقیقا 10 باشد
+
+    def __str__(self):
+        return f""" {self.customer.first_name} {self.customer.last_name}: {self.street}, {self.city.name}, 
+                {self.city.province.name}, {self.city.province.country.name} ---- 
+                {self.alley if self.alley else ""}- {self.building_name if self.building_name else ""} .
+                """
+                
