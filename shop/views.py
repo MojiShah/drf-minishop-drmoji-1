@@ -12,15 +12,30 @@ from .serializers import CategorySerializer,ProductSerializer
 # @api_view(http_method_names=["POST","GET","DELETE"])
 # def alaki(request : Request) -> Response:
 #     return Response("Hello world")
+@api_view()
+def getCategories(request):
+    categories = Category.objects.all()
+    serializer = CategorySerializer(categories,many=True)
+    return Response(serializer.data)
 
 @api_view()
-def getCategory(request):
-    category = Category.objects.last()
+def getCategory(request,pk):
+    # category = Category.objects.last()
+    category = Category.objects.get(pk=pk)
     serializer = CategorySerializer(category)
     return Response(serializer.data)
 
 @api_view()
-def getProduct(request):
-    product = Product.objects.last()
+def getProducts(request):
+    products = Product.objects.select_related("category").all()  # for less query in db
+    serializer = ProductSerializer(products,many=True)
+    return Response(serializer.data)
+
+@api_view()
+def getProduct(request,pk):
+    # product = Product.objects.last()
+    # product = Product.objects.first()
+    product = Product.objects.get(pk=pk)
     serializer = ProductSerializer(product)
     return Response(serializer.data)
+
