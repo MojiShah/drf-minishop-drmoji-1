@@ -16,7 +16,7 @@ class Category(TimeStampMixin):
         return f"{self.title}"
     
 class DisCount(TimeStampMixin):
-    amount = models.FloatField(validators=[MinValueValidator(0)])
+    amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
     code = models.CharField(max_length=255)
     description = models.CharField(max_length=255,blank=True)
     
@@ -29,7 +29,7 @@ class DisCount(TimeStampMixin):
 class Product(TimeStampMixin):
     title = models.CharField(max_length=255)
     category = models.ForeignKey(Category,on_delete=models.PROTECT,related_name="products")
-    dedescription = models.TextField
+    description = models.TextField(blank=True, default="")
     slug = models.SlugField(allow_unicode=True) # استفاده از کاراکتر فارسی مجازه
     price = models.DecimalField(max_digits=15,decimal_places=2)
     inventory = models.IntegerField(validators=[MinValueValidator(0)])
@@ -123,11 +123,11 @@ class BasketItem(TimeStampMixin):
 class Order(TimeStampMixin):
     ORDER_STATUS_PAID = "p"
     ORDER_STATUS_UNPAID = "u"
-    ORDER_STATUS_CANCLE = "c"
+    ORDER_STATUS_CANCELLED = "c"
     ORDER_STATUS_CHOICES = [
         (ORDER_STATUS_PAID,"Paid"),
         (ORDER_STATUS_UNPAID,"Unpaid"),
-        (ORDER_STATUS_CANCLE,"Cancle"),
+        (ORDER_STATUS_CANCELLED,"Canclled"),
     ]
     customer = models.ForeignKey(Customer,on_delete=models.PROTECT,related_name='orders')
     status = models.CharField(max_length=1,choices=ORDER_STATUS_CHOICES,default=ORDER_STATUS_UNPAID)
@@ -144,7 +144,7 @@ class OrderItem(TimeStampMixin):
     class Meta:
         constraints = [models.UniqueConstraint(fields=["order","product"],name="unique_order_product")]
         
-        def __str__(self):
-            return f"{self.product} - (quantity: {self.quantity})"
+    def __str__(self):
+        return f"{self.product} - (quantity: {self.quantity})"
     
     
