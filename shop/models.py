@@ -105,3 +105,46 @@ class Address(TimeStampMixin):
                 {self.alley if self.alley else ""}- {self.building_name if self.building_name else ""} .
                 """
                 
+class Basket(TimeStampMixin):
+    pass
+
+class BasketItem(TimeStampMixin):
+    basket = models.ForeignKey(Basket,on_delete=models.CASCADE,related_name='items')
+    product = models.ForeignKey(Product,on_delete=models.CASCADE,related_name='basket_items')
+    quantity = models.PositiveIntegerField()
+    
+    class Meta:
+        #unique_together = ('basket', 'product')  # Ensure that each product can only appear once per basket
+        constraints = [models.UniqueConstraint(fields=["basket","product"],name="unique_basket_product")]
+        
+    def __str__(self):
+        return f"{self.product} -(quantity : {self.quantity})"
+    
+class Order(TimeStampMixin):
+    ORDER_STATUS_PAID = "p"
+    ORDER_STATUS_UNPAID = "u"
+    ORDER_STATUS_CANCLE = "c"
+    ORDER_STATUS_CHOICES = [
+        (ORDER_STATUS_PAID,"Paid"),
+        (ORDER_STATUS_UNPAID,"Unpaid"),
+        (ORDER_STATUS_CANCLE,"Cancle"),
+    ]
+    customer = models.ForeignKey(Customer,on_delete=models.PROTECT,related_name='orders')
+    status = models.CharField(max_length=1,choices=ORDER_STATUS_CHOICES,default=ORDER_STATUS_UNPAID)
+    
+    def __str__(self):
+        return f"Order of {self.customer} (status : {self.get_status_display()})"
+    
+class OrderItem(TimeStampMixin):
+    order = models.ForeignKey(Order,on_delete=models.PROTECT,related_name='items')
+    product = models.ForeignKey(Product,on_delete=models.PROTECT,related_name='order_items')
+    quantity = models.PositiveSmallIntegerField()
+    price = models.DecimalField(max_digits=15,decimal_places=2)
+    
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["order","product"],name="unique_order_product")]
+        
+        def __str__(self):
+            return f"{self.product} - (quantity: {self.quantity})"
+    
+    
